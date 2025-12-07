@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  labels:
+    app: keycloak
+    app.kubernetes.io/name: {{ include "keycloak.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  serviceName: keycloak-discovery
+  replicas: {{ .Values.keycloak.replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        app.kubernetes.io/name: {{ include "keycloak.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          args:
+            - "start"
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "{{ .Values.keycloak.admin.username }}"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              value: "{{ .Values.keycloak.admin.password }}"
+            - name: KC_PROXY_HEADERS
+              value: "{{ .Values.keycloak.config.KC_PROXY_HEADERS }}"
+            - name: KC_HTTP_ENABLED
+              value: "{{ .Values.keycloak.config.KC_HTTP_ENABLED }}"
+            - name: KC_HOSTNAME_STRICT
+              value: "{{ .Values.keycloak.config.KC_HOSTNAME_STRICT }}"
+            - name: KC_HEALTH_ENABLED
+              value: "{{ .Values.keycloak.config.KC_HEALTH_ENABLED }}"
+            - name: KC_CACHE
+              value: "{{ .Values.keycloak.config.KC_CACHE }}"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KC_CACHE_EMBEDDED_NETWORK_BIND_ADDRESS
+              value: '$(POD_IP)'
+            - name: KC_DB
+              value: "{{ .Values.externalDatabase.type }}"
+            - name: KC_DB_URL_HOST
+              value: "{{ .Values.externalDatabase.host }}"
+            - name: KC_DB_URL_DATABASE
+              value: "{{ .Values.externalDatabase.name }}"
+            - name: KC_DB_USERNAME
+              value: "{{ .Values.externalDatabase.username }}"
+            - name: KC_DB_PASSWORD
+              value: "{{ .Values.externalDatabase.password }}"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: jgroups
+              containerPort: 7800
+              protocol: TCP
+            - name: jgroups-fd
+              containerPort: 57800
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: 9000
+            periodSeconds: {{ .Values.keycloak.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.keycloak.startupProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            periodSeconds: {{ .Values.keycloak.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.keycloak.readinessProbe.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: {{ .Values.keycloak.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.keycloak.livenessProbe.failureThreshold }}
+          resources:
+            limits:
+              cpu: {{ .Values.keycloak.resources.limits.cpu }}
+              memory: {{ .Values.keycloak.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.keycloak.resources.requests.cpu }}
+              memory: {{ .Values.keycloak.resources.requests.memory }}

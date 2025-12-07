@@ -1,0 +1,17 @@
+apiVersion: v2
+name: keycloak
+description: A Helm chart for Keycloak
+type: application
+version: 0.1.0
+appVersion: "26.4.7"
+keywords:
+  - keycloak
+  - identity
+  - access-management
+  - iam
+home: https://www.keycloak.org
+sources:
+  - https://github.com/keycloak/keycloak-quickstarts
+maintainers:
+  - name: keycloak
+    url: https://www.keycloak.org

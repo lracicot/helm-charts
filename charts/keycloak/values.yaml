@@ -1,0 +1,98 @@
+# Keycloak Helm Chart Values
+
+# Keycloak configuration
+keycloak:
+  replicas: 2
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.4.7"
+    pullPolicy: IfNotPresent
+
+  # Admin credentials
+  admin:
+    username: admin
+    password: admin
+
+  # Keycloak configuration environment variables
+  config:
+    # Proxy headers configuration
+    KC_PROXY_HEADERS: "xforwarded"
+    # Enable HTTP (set to false in production)
+    KC_HTTP_ENABLED: "true"
+    # Hostname strict mode (set to true in production)
+    KC_HOSTNAME_STRICT: "false"
+    # Health checks enabled
+    KC_HEALTH_ENABLED: "true"
+    # Cache type
+    KC_CACHE: "ispn"
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2000Mi
+    requests:
+      cpu: 500m
+      memory: 1700Mi
+
+  # Probes
+  startupProbe:
+    httpGet:
+      path: /health/started
+      port: 9000
+    periodSeconds: 1
+    failureThreshold: 600
+
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 9000
+    periodSeconds: 10
+    failureThreshold: 3
+
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 9000
+    periodSeconds: 10
+    failureThreshold: 3
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  name: keycloak
+  annotations: {}
+
+# StatefulSet service discovery
+discoveryService:
+  enabled: true
+  name: keycloak-discovery
+  type: ClusterIP
+
+# External database configuration
+# PostgreSQL is deployed externally and not managed by this chart
+externalDatabase:
+  enabled: true
+  type: postgres
+  host: postgresql.default.svc.cluster.local
+  port: 5432
+  name: keycloak
+  username: keycloak
+  password: keycloak
+  # Example for external database:
+  # host: my-postgres-db.example.com
+  # port: 5432
+
+# Pod security context
+securityContext: {}
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
