@@ -13,7 +13,6 @@ This Helm chart deploys [Keycloak](https://www.keycloak.org/) on Kubernetes usin
 ### Add the Helm repository
 
 ```bash
-
 helm repo add lracicot-charts https://lracicot.github.io/helm-charts
 helm repo update
 ```

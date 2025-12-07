@@ -6,11 +6,15 @@ on:
       - main
     paths:
       - 'charts/**'
+      - '.github/workflows/helm-publish.yaml'
   pull_request:
     branches:
       - main
     paths:
       - 'charts/**'
+
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
 jobs:
   validate:
